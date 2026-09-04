@@ -451,3 +451,31 @@ minimum (edit/delete icon buttons 26px; inline-edit save/cancel 28px).
   Pages, then confirm on the live HTTPS URL + a real phone.
 - After live confirmation: add a "Live demo" link to README, sync `Ideas.md` if the version tag
   needs it, and note the final URL here.
+
+---
+
+## Session 8 — 4 Sep 2026 (Published to GitHub + GitHub Pages)
+
+### What happened
+- Isaac published the repo via **GitHub Desktop** to his personal account.
+  - Repo: **`Bill-Splitter`** (public) — https://github.com/isaacgera/Bill-Splitter
+  - Live (GitHub Pages): **https://isaacgera.github.io/Bill-Splitter/**
+- GitHub Pages enabled from `main` / root.
+
+### Live verification (done from Kiro via web fetch)
+- `/` → serves the real Splitzy app HTML (header, Bills, Split Settings, Result, breakdown all present).
+- `/manifest.json` → loads, all 6 icons listed (2 SVG + 4 PNG).
+- `/sw.js` → served with `application/javascript` content-type (reachable; not a 404).
+- Relative paths resolve correctly under the `/Bill-Splitter/` subpath — no broken links from the subdirectory.
+
+### Docs synced
+- `README.md`: added **Live demo** link at top; Deployment section updated with the real Pages URL + setup steps.
+- (Version stays **1.3.4** — publishing isn't a code change.)
+
+### Still to do (Isaac)
+- Run the **mobile checklist** on the live URL from a real phone (install, offline via airplane mode,
+  tap targets, exports, light/dark). Confirm the Chrome `mobile-web-app-capable` warning is gone.
+- These README doc edits are committed locally — **sync once more in GitHub Desktop** to push them.
+
+### Status
+- **Built (Splitzy v1.3.4)** — now publicly live as an installable PWA on GitHub Pages.

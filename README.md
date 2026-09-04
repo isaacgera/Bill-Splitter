@@ -4,6 +4,8 @@ A local-first, offline **bill splitter with tip**. Split one or more bills acros
 add a tip, round shares if you like, and see what each person pays. Nothing leaves your
 device &mdash; no account, no server, no tracking.
 
+**Live demo:** https://isaacgera.github.io/Bill-Splitter/
+
 **Version:** 1.3.4 · **License:** MIT · Powered by Forjé
 
 ## Features
@@ -33,8 +35,12 @@ directly (`file://`) works for basic use but not for install/offline.
 
 ## Deployment
 
-Static host (e.g. GitHub Pages, Netlify). Deploy the folder as-is; there is no build step.
-Test the hosted version (not just local) to confirm PWA install and offline behaviour.
+Live on **GitHub Pages**: https://isaacgera.github.io/Bill-Splitter/
+
+Deployed as a static site with no build step. All paths are relative, so it runs correctly
+from the repo subpath. To reproduce: repo **Settings → Pages → Deploy from a branch → `main` /
+`root`**. Any static host (Netlify, etc.) works the same way. Test the hosted version (not just
+local) to confirm PWA install and offline behaviour.
 
 ## Sample data (advanced, no UI)
 
