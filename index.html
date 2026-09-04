@@ -182,6 +182,22 @@
 
     .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
     @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+    /* Remove tap delay / double-tap zoom on interactive controls */
+    button, .add-pill, .pill-btn, .icon-btn, .theme-toggle, .stepper button, .bill-edit .mini, .roundoff, .switch input, .currency-select, .dialog-actions button, .dialog-options button { touch-action: manipulation; }
+
+    /* Touch devices: enlarge small tap targets to a comfortable minimum (>=44px)
+       without changing the icon glyph size or the desktop appearance. */
+    @media (pointer: coarse) {
+      .bill-line .bl-actions { gap: 8px; }
+      .icon-btn { min-width: 44px; min-height: 44px; }
+      .bill-edit .mini { min-width: 40px; min-height: 40px; }
+      .stepper button { min-width: 40px; min-height: 40px; }
+      .theme-toggle { min-width: 42px; min-height: 42px; }
+      .add-pill { padding: 8px 14px; }
+      .dialog-close, .undo-btn { min-height: 40px; }
+    }
+
     @media (max-width: 420px) { .bill-edit { grid-template-columns: 1fr 70px auto auto; } .bill-edit input:nth-child(3) { display: none; } }
 
     footer { margin-top: var(--sp-5); text-align: center; font-size: var(--fs-xs); color: var(--text-muted); }

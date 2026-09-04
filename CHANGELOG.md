@@ -20,6 +20,11 @@ The PWA cache name is bumped on each release so updates reach installed apps.
   - **ARIA list** — the bills container now only carries `role="list"` when it actually holds
     `listitem` children (the empty-state hint and inline-edit rows no longer violate the
     list/listitem parent-child requirement).
+- **Touch usability** — on touch devices (`@media (pointer: coarse)`), small tap targets are
+  enlarged to a comfortable minimum (edit/delete 44px, save/cancel & steppers 40px, theme/about
+  42px) without changing the icon glyphs or the desktop layout; wider spacing between the
+  per-bill edit/delete buttons; and `touch-action: manipulation` on controls to remove the tap
+  delay and prevent double-tap zoom.
 ### Changed
 - PWA cache bumped to `splitzy-v1.3.4` so the new icons reach installed apps.
 

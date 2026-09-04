@@ -409,3 +409,45 @@ minifying would add a build step against the app's design. Noted, not actioned.
 ### Status
 - Still **v1.3.4**. Accessibility fixes complete and verified by computation; awaiting Isaac's
   live Lighthouse re-run, then on to publishing to GitHub.
+
+---
+
+## Session 7 — 4 Sep 2026 (v1.3.4 cont. — mobile/tablet tap-target polish + git init)
+
+### Goal
+Before publishing to GitHub, tighten Splitzy for mobile/tablet touch use, and prepare the
+local git repo. Still folded into v1.3.4 (pre-release polish, no new version bump).
+
+### Responsive review (findings)
+Read the CSS: the app was already responsive by design — correct viewport meta with
+`viewport-fit=cover`, `env(safe-area-inset-*)` padding for notched phones, two-card layout
+collapsing to one column at ≤720px, a ≤420px breakpoint simplifying the inline-edit row, and
+dialogs capped at `max-width: 90vw`. Main gap: some tap targets were below the 44px touch
+minimum (edit/delete icon buttons 26px; inline-edit save/cancel 28px).
+
+### Change (CSS-only, touch-scoped)
+- Added `@media (pointer: coarse)` rules: icon-btn → 44px min hit area, inline-edit minis &
+  steppers → 40px, theme/about → 42px, add-pill padding bumped, dialog-close/undo min-height 40px,
+  and `.bl-actions` gap widened to 8px. Icon glyphs and the desktop (pointer: fine) layout are
+  unchanged — only the clickable area grows on touch.
+- Added `touch-action: manipulation` to interactive controls (removes ~300ms tap delay, blocks
+  double-tap zoom on buttons).
+- No behavioural/JS changes; Lighthouse desktop scores unaffected (touch rules don't apply to the
+  desktop emulation).
+
+### Git (local, done from Kiro)
+- `git init -b main`; added `.gitignore` (OS/editor cruft + `_*` scratch files); staged all 20
+  app files; first commit **820c6d9** "Initial commit: Splitzy v1.3.4 (bill splitter PWA)".
+- `gh` (GitHub CLI) could not be installed — winget source is broken on this corporate network
+  (`0x8a15000f`), and the MSI needs admin. **Plan:** publish via **GitHub Desktop** (bundles git,
+  handles auth) → then enable GitHub Pages (Settings → Pages → main / root).
+
+### Verification
+- Tap-target CSS reviewed by inspection; style block confirmed balanced. Live device check is
+  Isaac's (checklist provided). Contrast/a11y from Session 6 unchanged.
+
+### Pending
+- Isaac: publish via GitHub Desktop (personal account, repo name TBD, public for Pages), enable
+  Pages, then confirm on the live HTTPS URL + a real phone.
+- After live confirmation: add a "Live demo" link to README, sync `Ideas.md` if the version tag
+  needs it, and note the final URL here.
