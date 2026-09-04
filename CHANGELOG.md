@@ -4,20 +4,22 @@ All notable changes to Splitzy. Follows semantic versioning (major.minor.patch).
 The PWA cache name is bumped on each release so updates reach installed apps.
 
 ## [1.3.5] — 4 Sep 2026
-### Fixed
-- **Mobile summary export.** On phones/tablets the old exports failed silently:
-  - **Image** used an `<a download>` click, which mobile browsers largely ignore — the image
-    appeared to save nowhere.
-  - **PDF** opened a new tab and called `print()`, which on mobile often did nothing and left
-    the user stuck in a tab with no way back to the app.
-  Both now use the **Web Share API** on devices that support file sharing (`navigator.canShare({files})`):
-  the summary is rendered to a PNG and offered through the native share sheet (save to Photos/Files,
-  message, etc.). On desktop, **Image** downloads a PNG as before, and **PDF** now prints via a
-  **hidden same-page iframe** (no orphan tab — the app stays exactly where it was).
-- Success toasts are now honest — they reflect what actually happened (shared / downloaded) rather
-  than always claiming a save.
 ### Changed
+- **Summary export simplified to two options everywhere: Image/Share + Text.** The **PDF**
+  export was removed — on mobile it couldn't produce a real PDF (it fell back to a PNG, which
+  was misleading), and on desktop the browser's own Print → *Save as PDF* covers that need.
+  - On **desktop**, the first button is **Image** and downloads a PNG.
+  - On **touch devices**, it becomes **Share** and opens the native OS share sheet
+    (`navigator.share` with the PNG file) — save to Photos/Files, message it, etc.
+  The label and icon adapt to the device (`@media (pointer: coarse)`); the underlying action is
+  the same summary rendered to a PNG.
 - PWA cache bumped to `splitzy-v1.3.5`.
+### Fixed
+- **Mobile summary export used to fail silently.** The old **Image** used an `<a download>` click
+  that mobile browsers largely ignore (nothing saved), and the old **PDF** opened a new tab and
+  called `print()`, which on mobile often did nothing and stranded the user with no way back.
+  Both are resolved by the share-sheet approach above.
+- Success toasts are now honest — they say **shared** / **downloaded** to match what actually happened.
 
 ## [1.3.4] — 4 Sep 2026
 ### Added

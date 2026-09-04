@@ -169,10 +169,12 @@
     .dialog-actions button { flex: 1; border-radius: var(--r-md); padding: 9px; font-size: var(--fs-sm); font-weight: 600; cursor: pointer; }
     .dialog-actions .primary { background: var(--brand-strong); border: none; color: var(--on-brand); }
     .dialog-actions .ghost { background: transparent; border: 1px solid var(--border); color: var(--text-muted); }
-    .dialog-options { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--sp-2); }
+    .dialog-options { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-2); }
     .dialog-options button { background: var(--surface-2); border: 1px solid var(--border); color: var(--text); border-radius: var(--r-md); padding: var(--sp-3) var(--sp-2); font-size: var(--fs-xs); font-weight: 600; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 6px; transition: background var(--dur), border-color var(--dur); }
     .dialog-options button:hover { background: var(--brand-soft); border-color: var(--brand); }
     .dialog-options svg { width: 22px; height: 22px; color: var(--brand); }
+    /* Default (mouse/desktop): "Image" variant shown, "Share" variant hidden */
+    .dialog-options .ico-share, .dialog-options .lbl-share { display: none; }
     .dialog-close { margin-top: var(--sp-4); width: 100%; background: none; border: 1px solid var(--border); color: var(--text-muted); border-radius: var(--r-md); padding: 8px; font-size: var(--fs-xs); cursor: pointer; }
 
     /* Toast */
@@ -197,6 +199,10 @@
       .theme-toggle { min-width: 42px; min-height: 42px; }
       .add-pill { padding: 8px 14px; }
       .dialog-close, .undo-btn { min-height: 40px; }
+      /* Touch: the Image button becomes "Share" (opens the OS share sheet). */
+      .dialog-options .ico-img, .dialog-options .lbl-img { display: none; }
+      .dialog-options .ico-share { display: block; }
+      .dialog-options .lbl-share { display: inline; }
     }
 
     @media (max-width: 420px) { .bill-edit { grid-template-columns: 1fr 70px auto auto; } .bill-edit input:nth-child(3) { display: none; } }
@@ -330,16 +336,13 @@
   <!-- Export dialog -->
   <div class="dialog-backdrop" id="exportDialog">
     <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="expTitle">
-      <h3 id="expTitle">Save summary as&hellip;</h3>
-      <p>Choose a format. Everything stays on your device.</p>
+      <h3 id="expTitle">Save summary</h3>
+      <p>Everything stays on your device.</p>
       <div class="dialog-options">
-        <button id="expImg" title="Save summary as image" aria-label="Save summary as PNG image">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
-          Image
-        </button>
-        <button id="expPdf" title="Save summary as PDF via print" aria-label="Save summary as PDF">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
-          PDF
+        <button id="expImg" title="Save or share the summary" aria-label="Save or share the summary image">
+          <svg class="ico-img" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+          <svg class="ico-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>
+          <span class="lbl-img">Image</span><span class="lbl-share">Share</span>
         </button>
         <button id="expTxt" title="Copy summary as text" aria-label="Copy summary as plain text">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7V4h16v3M9 20h6M12 4v16"/></svg>
@@ -363,7 +366,7 @@
           <li><b>People &amp; Tip</b> &mdash; type a value or use the &minus;/+ buttons.</li>
           <li><b>Round-Off</b> &mdash; toggle beside the result to round each share up to the next whole unit.</li>
           <li><b>Currency</b> &mdash; pick from the selector; choose &ldquo;No symbol&rdquo; to stay currency-agnostic.</li>
-          <li><b>Summary</b> &mdash; save the split as an Image, PDF or copy it as Text.</li>
+          <li><b>Summary</b> &mdash; save the split as an image (or Share it on mobile), or copy it as Text.</li>
           <li><b>Reset</b> &mdash; clears everything (undoable for 5 seconds).</li>
         </ul>
         <p class="about-meta">Version 1.3.5 &middot; <a id="ugLink" href="./Splitzy-UserGuide.html" target="_blank" rel="noopener">Full user guide</a></p>
@@ -602,62 +605,6 @@
             showMessage("Summary downloaded");
           }
         }, "image/png");
-      };
-
-      // Build the printable summary HTML (shared by the PDF print path).
-      function summaryPrintHTML() {
-        var lines = summaryLines();
-        var rows = lines.map(function(ln){ return "<tr><td>"+ln.replace(/&/g,"&amp;").replace(/</g,"&lt;")+"</td></tr>"; }).join("");
-        var css = "body{font-family:system-ui,Segoe UI,sans-serif;color:#0f172a;padding:40px;}h1{margin:0 0 4px;font-size:22px;}p{margin:0 0 16px;color:#64748b;font-size:12px;}table{border-collapse:collapse;width:100%;max-width:400px;}td{padding:7px 4px;border-bottom:1px solid #e2e8f0;font-size:13px;}tr:last-child td{font-weight:700;color:#0284c7;border-bottom:none;font-size:15px;}";
-        return "<!DOCTYPE html><html><head><meta charset='utf-8'><title>Splitzy summary<" + "/title><style>" + css + "<" + "/style><" + "/head><body><h1>Splitzy<" + "/h1><p>Bill split summary \u2014 " + todayDMY() + "<" + "/p><table>" + rows + "<" + "/table><" + "/body><" + "/html>";
-      }
-
-      // PDF:
-      //  - Mobile (file share available): share the summary as a PNG instead of orphaning a
-      //    tab with no way back. Phones "print to PDF" awkwardly; a shareable image is better.
-      //  - Desktop: print via a hidden same-page iframe (no new tab), so the app stays put
-      //    and the user picks "Save as PDF" in the print dialog.
-      $("expPdf").onclick = function() {
-        $("exportDialog").classList.remove("open");
-
-        // Probe file-share support with a tiny throwaway file.
-        var probe = new File([""], "probe.png", { type: "image/png" });
-        if (canShareFiles(probe)) {
-          var c;
-          try { c = renderSummaryCanvas(); } catch (e) { showMessage("Couldn\u2019t create summary"); return; }
-          c.toBlob(function(blob) {
-            if (!blob) { showMessage("Couldn\u2019t create summary"); return; }
-            var file = new File([blob], "splitzy-summary.png", { type: "image/png" });
-            navigator.share({ files: [file], title: "Splitzy summary" })
-              .then(function(){ showMessage("Summary shared"); })
-              .catch(function(err){ if (err && err.name === "AbortError") return; downloadBlob(blob, "splitzy-summary.png"); showMessage("Summary downloaded"); });
-          }, "image/png");
-          return;
-        }
-
-        // Desktop: hidden iframe print (no orphan tab).
-        var frame = document.createElement("iframe");
-        frame.setAttribute("aria-hidden", "true");
-        frame.style.position = "fixed"; frame.style.right = "0"; frame.style.bottom = "0";
-        frame.style.width = "0"; frame.style.height = "0"; frame.style.border = "0";
-        document.body.appendChild(frame);
-        var doc = frame.contentWindow.document;
-        doc.open(); doc.write(summaryPrintHTML()); doc.close();
-        var cleaned = false;
-        function cleanup(){ if (cleaned) return; cleaned = true; setTimeout(function(){ if (frame.parentNode) frame.parentNode.removeChild(frame); }, 500); }
-        setTimeout(function(){
-          try {
-            frame.contentWindow.focus();
-            if (frame.contentWindow.matchMedia) {
-              var mql = frame.contentWindow.matchMedia("print");
-              mql.addEventListener ? mql.addEventListener("change", function(e){ if (!e.matches) cleanup(); }) : mql.addListener(function(e){ if (!e.matches) cleanup(); });
-            }
-            frame.contentWindow.onafterprint = cleanup;
-            frame.contentWindow.print();
-          } catch (e) { cleanup(); }
-          setTimeout(cleanup, 60000); // safety net
-        }, 300);
-        showMessage("Opening print \u2014 choose Save as PDF");
       };
 
       // Text (clipboard)

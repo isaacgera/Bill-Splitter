@@ -524,3 +524,45 @@ minimum (edit/delete icon buttons 26px; inline-edit save/cancel 28px).
 ### Status
 - **v1.3.5** ready locally (4 commits from v1.3.4 already pending push + this). Needs Isaac's device
   test, then push via GitHub Desktop; Pages will update automatically. `Ideas.md` tag → v1.3.5 after confirm.
+
+---
+
+## Session 10 — 4 Sep 2026 (v1.3.5 refinement — export simplified to two options)
+
+### Context
+After the Session 9 mobile-export fix, Isaac tested on his phone: the **PDF** button now produced
+a **.png** (the mobile fallback), which is misleading — a PDF button shouldn't hand back an image.
+Discussed options; Isaac chose to **drop PDF entirely** and go to **two buttons everywhere**.
+
+### Final design (v1.3.5)
+- Export dialog now has exactly **two options on every device**:
+  - **Image / Share** — one adaptive button. Desktop: label **Image**, downloads a PNG.
+    Touch (`@media (pointer: coarse)`): label **Share**, opens the OS share sheet with the PNG.
+    Label + icon swap via CSS; the action (render summary → PNG) is identical underneath.
+  - **Text** — copies a plain-text summary to the clipboard.
+- **PDF removed completely**: the `#expPdf` button, its click handler, and the `summaryPrintHTML()`
+  helper + hidden-iframe print code are all gone. Desktop users who want a PDF use the browser's
+  own Print → Save as PDF (noted in the user guide).
+- `.dialog-options` grid is now 2 columns everywhere (was 3).
+
+### Why
+Honest UI over clever UI: a "PDF" button that yields a PNG on mobile is a lie. Most phone users
+want to share/save the summary anyway. Removing PDF also deletes the most fragile export code
+(the print string that caused the v1.2.0/v1.3.1 button-breakage bugs historically) — net simpler
+and safer, and keeps Splitzy library-free.
+
+### Docs synced
+- CHANGELOG v1.3.5 rewritten to describe the two-option design (Changed + Fixed).
+- User guide: summary section + ToC updated (Image/Share/Text; PDF note points to browser print).
+- README (feature line + tech note) and in-app About dialog updated.
+- Version stays **1.3.5** (not pushed live yet); SW cache already `splitzy-v1.3.5`.
+
+### Verification
+- By inspection: `expPdf`/`summaryPrintHTML` fully removed (grep clean — no dangling `$("expPdf")`
+  that would throw); `expImg` + `expTxt` handlers intact; exactly one each of the structural closing
+  tags in the right places (the risky print HTML string is gone).
+- **Isaac to device-test** (checklist provided): dialog shows two buttons; desktop Image downloads
+  a PNG; mobile Share opens the share sheet; Text copies; no PDF anywhere; no orphan tab.
+
+### Status
+- **v1.3.5** ready locally. After Isaac's device test → push via GitHub Desktop; then Ideas.md tag → v1.3.5.

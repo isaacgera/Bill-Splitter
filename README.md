@@ -17,7 +17,7 @@ device &mdash; no account, no server, no tracking.
 - **Round-Off** &mdash; toggle to round each share up to the next whole unit.
 - **Currency** &mdash; ₹ INR (default), £ GBP, $ USD, € EUR, or no symbol; remembered between visits.
 - **Consolidated split** &mdash; per-person amount from the combined subtotal + shared tip.
-- **Summary export** &mdash; save as Image (PNG), PDF (via print), or copy as Text. No libraries.
+- **Summary export** &mdash; save as Image (PNG) on desktop, Share via the OS share sheet on mobile, or copy as Text. No libraries.
 - **5-second Undo** on delete and reset.
 - **Light/dark theme** &mdash; follows the OS preference, with a persistent manual toggle.
 - **In-app About/Help** and a full standalone User Guide.
@@ -88,7 +88,7 @@ Bill Splitter/
 
 - Vanilla HTML/CSS/JS, single file, no dependencies, no build step.
 - Design tokens (CSS custom properties) with light/dark theming.
-- Exports are library-free: PNG via the Canvas API, PDF via native print, Text via the Clipboard API.
+- Exports are library-free: PNG via the Canvas API, sharing via the Web Share API (mobile), Text via the Clipboard API.
 - State is in-memory per session; the sample loader is the import path (validated, undoable).
 - Accessibility: semantic markup, ARIA labels/roles, keyboard-friendly, honours `prefers-reduced-motion`.
 
