@@ -479,3 +479,48 @@ minimum (edit/delete icon buttons 26px; inline-edit save/cancel 28px).
 
 ### Status
 - **Built (Splitzy v1.3.4)** — now publicly live as an installable PWA on GitHub Pages.
+
+---
+
+## Session 9 — 4 Sep 2026 (v1.3.5 — mobile summary export fix)
+
+### Problem (reported by Isaac, testing the live PWA on his phone)
+1. **Image** export: tapping Summary → Image gave no indication where (or whether) the image saved.
+2. **PDF** export: opened a new tab showing the summary with **no way back** to the app.
+
+### Root cause
+- **Image**: used a programmatic `<a download>` click. Mobile browsers (esp. iOS Safari) largely
+  ignore the `download` attribute, so nothing visibly saved — yet the toast still said "saved".
+- **PDF**: `window.open("", "_blank")` + `print()`. On mobile `print()` frequently doesn't fire,
+  leaving the user stranded in an orphan tab with no back navigation.
+
+### Fix (export logic reworked; no UI restructure)
+- Added helpers: `canShareFiles(file)` (feature-detects `navigator.canShare({files:[...]})`),
+  `renderSummaryCanvas()` (extracted the canvas drawing), `downloadBlob()`, and `summaryPrintHTML()`.
+- **Image**: canvas → `toBlob` → if file-share supported, open the **OS share sheet** via
+  `navigator.share({files})`; else fall back to a Blob **download**. Toast now reflects the real
+  outcome (shared vs downloaded); `AbortError` (user cancelled the sheet) is silent.
+- **PDF**: on mobile (file-share available) shares the summary **as a PNG** (phones print-to-PDF
+  poorly, and this removes the orphan-tab dead end); on desktop prints via a **hidden same-page
+  iframe** (auto-cleaned via `onafterprint` / matchMedia, with a safety-net timeout) — **no new
+  tab**, so the app is never left behind.
+- Web Share API pattern verified against MDN/web.dev; file-share support is good on Android Chrome
+  and modern iOS Safari, with graceful fallback where it isn't. (Content rephrased for compliance.)
+
+### Release chores (per build standards — this is a shipped app, real behaviour change)
+- Version → **1.3.5** across index.html (VERSION const, footer, About), user guide (pill + footer),
+  README. SW cache → `splitzy-v1.3.5`. CHANGELOG v1.3.5 entry added.
+
+### Verification
+- **By inspection:** handlers re-read and balanced; exactly one each of `</script></style></head></body>`
+  in correct positions (no embedded closing tags — kept the fragment-split technique). A naive
+  brace-balance script flagged false positives on JS regex literals **identically** for the current
+  and the previously-shipped file, so no new imbalance was introduced.
+- **Not run here:** live device test. **Isaac to check on phone + desktop** (checklist provided):
+  mobile Summary → Image and → PDF should both open the **share sheet** (save to Photos/Files etc.),
+  and never strand you in a tab; desktop Image still downloads a PNG, desktop PDF opens the print
+  dialog **without** a new tab and returns cleanly.
+
+### Status
+- **v1.3.5** ready locally (4 commits from v1.3.4 already pending push + this). Needs Isaac's device
+  test, then push via GitHub Desktop; Pages will update automatically. `Ideas.md` tag → v1.3.5 after confirm.

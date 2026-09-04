@@ -3,6 +3,22 @@
 All notable changes to Splitzy. Follows semantic versioning (major.minor.patch).
 The PWA cache name is bumped on each release so updates reach installed apps.
 
+## [1.3.5] — 4 Sep 2026
+### Fixed
+- **Mobile summary export.** On phones/tablets the old exports failed silently:
+  - **Image** used an `<a download>` click, which mobile browsers largely ignore — the image
+    appeared to save nowhere.
+  - **PDF** opened a new tab and called `print()`, which on mobile often did nothing and left
+    the user stuck in a tab with no way back to the app.
+  Both now use the **Web Share API** on devices that support file sharing (`navigator.canShare({files})`):
+  the summary is rendered to a PNG and offered through the native share sheet (save to Photos/Files,
+  message, etc.). On desktop, **Image** downloads a PNG as before, and **PDF** now prints via a
+  **hidden same-page iframe** (no orphan tab — the app stays exactly where it was).
+- Success toasts are now honest — they reflect what actually happened (shared / downloaded) rather
+  than always claiming a save.
+### Changed
+- PWA cache bumped to `splitzy-v1.3.5`.
+
 ## [1.3.4] — 4 Sep 2026
 ### Added
 - **Raster PNG icons** (192 & 512, standard + maskable) alongside the existing SVGs, for

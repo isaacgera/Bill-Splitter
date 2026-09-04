@@ -1,4 +1,4 @@
-var CACHE_NAME = 'splitzy-v1.3.4';
+var CACHE_NAME = 'splitzy-v1.3.5';
 var ASSETS = [
     './',
     './index.html',

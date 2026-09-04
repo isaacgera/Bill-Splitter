@@ -6,7 +6,7 @@ device &mdash; no account, no server, no tracking.
 
 **Live demo:** https://isaacgera.github.io/Bill-Splitter/
 
-**Version:** 1.3.4 · **License:** MIT · Powered by Forjé
+**Version:** 1.3.5 · **License:** MIT · Powered by Forjé
 
 ## Features
 
