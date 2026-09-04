@@ -566,3 +566,18 @@ and safer, and keeps Splitzy library-free.
 
 ### Status
 - **v1.3.5** ready locally. After Isaac's device test → push via GitHub Desktop; then Ideas.md tag → v1.3.5.
+
+---
+
+## Status update — 4 Sep 2026: v1.3.5 shipped
+
+Isaac pushed all commits via GitHub Desktop; GitHub Pages updated. Verified live: the deployed
+CHANGELOG at https://isaacgera.github.io/Bill-Splitter/ shows v1.3.5 with the two-option export.
+Mobile share flow confirmed working on Isaac's phone. `Ideas.md` tag → **Built (Splitzy v1.3.5)**.
+
+Splitzy is now publicly live as an installable PWA: Lighthouse 100 across all four categories,
+mobile/tablet-polished, offline-capable, two-option summary export (Image/Share + Text), MIT-licensed,
+fully documented.
+
+### Deferred (unchanged)
+- Separate **group expense settler** app (who-owes-whom + minimised transfers).
