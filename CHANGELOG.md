@@ -20,6 +20,9 @@ The PWA cache name is bumped on each release so updates reach installed apps.
   - **ARIA list** — the bills container now only carries `role="list"` when it actually holds
     `listitem` children (the empty-state hint and inline-edit rows no longer violate the
     list/listitem parent-child requirement).
+- **PWA meta** — added the standard `<meta name="mobile-web-app-capable" content="yes">`
+  alongside the Apple-specific one (which stays for older iOS Safari). Clears a Chrome console
+  deprecation warning; no behaviour change.
 - **Touch usability** — on touch devices (`@media (pointer: coarse)`), small tap targets are
   enlarged to a comfortable minimum (edit/delete 44px, save/cancel & steppers 40px, theme/about
   42px) without changing the icon glyphs or the desktop layout; wider spacing between the
