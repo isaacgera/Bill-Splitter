@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Splitzy — Prototype C (refined v3)</title>
+  <style>
+    :root {
+      --brand: #38bdf8; --brand-strong: #0ea5e9; --brand-soft: #0c2c3f;
+      --bg: #0b1220; --surface: #111c2e; --surface-2: #16233a;
+      --text: #e6edf6; --text-muted: #93a4bd; --border: #223148;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+      --shadow-lift: 0 2px 6px rgba(0,0,0,.5), 0 16px 40px rgba(0,0,0,.45);
+      --danger: #f87171; --success: #4ade80;
+      --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 20px; --sp-6: 28px;
+      --r-sm: 8px; --r-md: 12px; --r-lg: 16px; --r-full: 999px;
+      --fs-xs: 0.75rem; --fs-sm: 0.86rem; --fs-md: 0.98rem; --fs-lg: 1.2rem; --fs-xl: 1.5rem; --fs-2xl: 2rem;
+      --dur: 150ms; --ease: cubic-bezier(.2,.7,.3,1);
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--bg); color: var(--text); line-height: 1.45; -webkit-font-smoothing: antialiased; }
+    .page-wrap { max-width: 940px; margin: 0 auto; padding: var(--sp-4); }
+
+    header { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--sp-4); }
+    .brand { display: flex; align-items: center; gap: var(--sp-3); }
+    .brand .logo { width: 36px; height: 36px; border-radius: var(--r-md); background: linear-gradient(135deg, var(--brand), var(--brand-strong)); display: grid; place-items: center; color: #fff; }
+    .brand .logo svg { width: 19px; height: 19px; }
+    .brand h1 { font-size: var(--fs-lg); margin: 0; }
+    .brand small { font-size: var(--fs-xs); color: var(--text-muted); display: block; }
+    .badge { background: var(--brand-soft); color: var(--brand); padding: 3px 12px; border-radius: var(--r-full); font-size: var(--fs-xs); font-weight: 600; }
+
+    .layout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-4); align-items: stretch; }
+    @media (max-width: 720px) { .layout { grid-template-columns: 1fr; } }
+
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow); padding: var(--sp-4); display: flex; flex-direction: column; }
+    .card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--sp-3); }
+    .card-title { font-size: var(--fs-sm); font-weight: 700; margin: 0; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); }
+
+    /* Add pill (top-right of Bills card) */
+    .add-pill { display: inline-flex; align-items: center; gap: 5px; background: var(--brand); border: none; color: #fff; border-radius: var(--r-full); padding: 5px 12px; font-size: var(--fs-xs); font-weight: 700; cursor: pointer; transition: background var(--dur); }
+    .add-pill:hover { background: var(--brand-strong); }
+    .add-pill svg { width: 14px; height: 14px; }
+
+    /* One-liner bills */
+    .bills { display: flex; flex-direction: column; gap: 6px; }
+    .empty-hint { font-size: var(--fs-xs); color: var(--text-muted); text-align: center; padding: var(--sp-4); border: 1px dashed var(--border); border-radius: var(--r-sm); }
+    .bill-line {
+      display: flex; align-items: center; gap: var(--sp-2);
+      background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--r-sm);
+      padding: 7px 10px; font-size: var(--fs-sm);
+    }
+    .bill-line .bl-desc { font-weight: 600; }
+    .bill-line .bl-meta { color: var(--text-muted); font-size: var(--fs-xs); }
+    .bill-line .bl-amt { margin-left: auto; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .bill-line .bl-actions { display: flex; gap: 4px; }
+    .icon-btn { width: 26px; height: 26px; border-radius: 6px; border: 1px solid transparent; background: transparent; color: var(--text-muted); cursor: pointer; display: grid; place-items: center; transition: color var(--dur), background var(--dur); }
+    .icon-btn:hover { background: var(--surface); color: var(--text); }
+    .icon-btn.del:hover { color: var(--danger); }
+    .icon-btn svg { width: 15px; height: 15px; }
+
+    /* Inline edit row (in place) */
+    .bill-edit {
+      display: grid; grid-template-columns: 1fr 84px 108px auto auto; gap: 6px; align-items: center;
+      background: var(--surface-2); border: 1px solid var(--brand); box-shadow: 0 0 0 2px color-mix(in srgb, var(--brand) 25%, transparent);
+      border-radius: var(--r-sm); padding: 7px 8px;
+    }
+    .bill-edit input { background: var(--surface); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 6px 8px; font-size: var(--fs-xs); outline: none; width: 100%; }
+    .bill-edit input:focus { border-color: var(--brand); }
+    .bill-edit .mini { width: 28px; height: 28px; border-radius: 6px; border: 1px solid var(--border); cursor: pointer; display: grid; place-items: center; }
+    .bill-edit .mini.save { background: var(--brand); border-color: var(--brand); color: #fff; }
+    .bill-edit .mini.cancel { background: var(--surface); color: var(--text-muted); }
+    .bill-edit .mini svg { width: 15px; height: 15px; }
+
+    .subtotal-row { display: flex; justify-content: space-between; margin-top: var(--sp-3); padding-top: var(--sp-3); border-top: 1px solid var(--border); font-size: var(--fs-sm); }
+    .subtotal-row .v { font-size: var(--fs-md); font-weight: 700; }
+
+    /* Nested split panel: People left, Tip right */
+    .split-panel { border: 1px solid var(--border); border-radius: var(--r-md); background: var(--surface-2); padding: var(--sp-3); margin-top: var(--sp-3); }
+    .split-panel-title { font-size: var(--fs-xs); font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: var(--sp-3); }
+    .split-controls { display: flex; align-items: flex-end; justify-content: space-between; }
+    .control-group.right { text-align: right; }
+    .control-group label { font-size: var(--fs-xs); color: var(--text-muted); display: block; margin-bottom: 6px; }
+
+    /* Stepper with editable number field */
+    .stepper { display: inline-flex; align-items: center; gap: var(--sp-2); }
+    .stepper button { width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-size: var(--fs-lg); cursor: pointer; display: grid; place-items: center; transition: background var(--dur); }
+    .stepper button:hover { background: var(--brand-soft); }
+    .stepper .val-wrap { display: inline-flex; align-items: center; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; }
+    .stepper .val-wrap:focus-within { border-color: var(--brand); }
+    .stepper input.val { width: 44px; text-align: center; font-size: var(--fs-lg); font-weight: 700; font-variant-numeric: tabular-nums; background: transparent; border: none; color: var(--text); outline: none; padding: 5px 0; -moz-appearance: textfield; }
+    .stepper input.val::-webkit-outer-spin-button, .stepper input.val::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .stepper .suffix { color: var(--text-muted); font-weight: 700; padding-right: 8px; font-size: var(--fs-sm); }
+
+    .reset-btn { margin-top: auto; padding-top: var(--sp-3); text-align: center; }
+    /* fit-to-text pill; shared look for Reset and Summary */
+    .pill-btn { display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--border); background: var(--surface-2); color: var(--text); border-radius: var(--r-md); padding: 8px 18px; font-size: var(--fs-sm); font-weight: 600; cursor: pointer; transition: background var(--dur), border-color var(--dur); }
+    .pill-btn:hover { background: var(--brand-soft); border-color: var(--brand); }
+    .pill-btn:focus-visible { outline: none; border-color: var(--brand); box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 30%, transparent); }
+
+    /* Results */
+    .results { text-align: center; }
+    .hero { padding: var(--sp-5) 0; }
+    /* 3-col grid: value stays centred, toggle pinned right */
+    .result-row { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; }
+    .hero .amount { grid-column: 2; font-size: var(--fs-2xl); font-weight: 800; color: var(--brand-strong); }
+    .hero .sub { font-size: var(--fs-sm); color: var(--text-muted); margin-top: 6px; }
+
+    /* Round-Off toggle switch — right-aligned in its cell */
+    .roundoff { grid-column: 3; justify-self: end; display: inline-flex; align-items: center; gap: 8px; font-size: var(--fs-xs); color: var(--text-muted); cursor: pointer; }
+    .switch { position: relative; width: 44px; height: 26px; flex: none; }
+    .switch input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; z-index: 2; width: 100%; height: 100%; }
+    .switch .track { position: absolute; inset: 0; background: var(--border); border-radius: var(--r-full); transition: background var(--dur); z-index: 0; }
+    .switch .thumb { position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; background: #fff; border-radius: 50%; box-shadow: var(--shadow); transition: transform var(--dur); z-index: 1; }
+    .switch input:checked ~ .track { background: var(--brand); }
+    .switch input:checked ~ .thumb { transform: translateX(18px); }
+
+    .breakdown { text-align: left; }
+    .b-row { display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid var(--border); font-size: var(--fs-sm); }
+    .b-row:last-child { border-bottom: none; font-weight: 700; }
+    .b-row .k { color: var(--text-muted); }
+    .export-wrap { margin-top: auto; padding-top: var(--sp-4); }
+
+    /* Dialog (shared: add + export) */
+    .dialog-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 100; align-items: center; justify-content: center; }
+    .dialog-backdrop.open { display: flex; }
+    .dialog { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-lift); padding: var(--sp-5); width: 340px; max-width: 90vw; }
+    .dialog h3 { margin: 0 0 var(--sp-2); font-size: var(--fs-md); }
+    .dialog p { margin: 0 0 var(--sp-4); font-size: var(--fs-xs); color: var(--text-muted); }
+    .dialog-field { margin-bottom: var(--sp-3); }
+    .dialog-field label { display: block; font-size: var(--fs-xs); color: var(--text-muted); margin-bottom: 4px; }
+    .dialog-field input { width: 100%; background: var(--surface-2); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 8px 10px; font-size: var(--fs-sm); outline: none; }
+    .dialog-field input:focus { border-color: var(--brand); }
+    .dialog-actions { display: flex; gap: var(--sp-2); margin-top: var(--sp-4); }
+    .dialog-actions button { flex: 1; border-radius: var(--r-md); padding: 9px; font-size: var(--fs-sm); font-weight: 600; cursor: pointer; }
+    .dialog-actions .primary { background: var(--brand); border: none; color: #fff; }
+    .dialog-actions .ghost { background: transparent; border: 1px solid var(--border); color: var(--text-muted); }
+
+    .dialog-options { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--sp-2); }
+    .dialog-options button { background: var(--surface-2); border: 1px solid var(--border); color: var(--text); border-radius: var(--r-md); padding: var(--sp-3) var(--sp-2); font-size: var(--fs-xs); font-weight: 600; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 6px; transition: background var(--dur), border-color var(--dur); }
+    .dialog-options button:hover { background: var(--brand-soft); border-color: var(--brand); }
+    .dialog-options svg { width: 22px; height: 22px; color: var(--brand); }
+    .dialog-close { margin-top: var(--sp-4); width: 100%; background: none; border: 1px solid var(--border); color: var(--text-muted); border-radius: var(--r-md); padding: 8px; font-size: var(--fs-xs); cursor: pointer; }
+
+    /* Currency selector */
+    .currency-select { appearance: none; background: var(--surface-2); border: 1px solid var(--border); color: var(--text); border-radius: var(--r-full); padding: 6px 14px; font-size: var(--fs-xs); font-weight: 600; cursor: pointer; }
+    .currency-select:focus-visible { outline: none; border-color: var(--brand); }
+
+    /* Toast with Undo */
+    .toast {
+      position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(20px);
+      background: var(--text); color: var(--bg); padding: 10px 12px 10px 16px; border-radius: var(--r-full);
+      font-size: var(--fs-sm); font-weight: 600; display: flex; align-items: center; gap: var(--sp-3);
+      opacity: 0; pointer-events: none; transition: opacity var(--dur) var(--ease), transform var(--dur) var(--ease); z-index: 200;
+      box-shadow: var(--shadow-lift);
+    }
+    .toast.show { opacity: 1; pointer-events: auto; transform: translateX(-50%) translateY(0); }
+    .toast .undo-btn { background: var(--brand); color: #fff; border: none; border-radius: var(--r-full); padding: 5px 14px; font-size: var(--fs-xs); font-weight: 700; cursor: pointer; }
+    .toast .undo-count { opacity: .7; font-weight: 400; font-size: var(--fs-xs); }
+  </style>
+</head>
+<body>
+  <div class="page-wrap">
+    <header>
+      <div class="brand">
+        <span class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3v18l2-1 2 1 2-1 2 1 2-1 2 1V3l-2 1-2-1-2 1-2-1-2 1-2-1z"/><path d="M9 8h6M9 12h6"/></svg></span>
+        <div><h1>Splitzy</h1><small>Prototype C — refined v3</small></div>
+      </div>
+      <select class="currency-select" id="currency" title="Currency">
+        <option value="none">No symbol</option>
+        <option value="inr" selected>₹ INR</option>
+        <option value="gbp">£ GBP</option>
+        <option value="usd">$ USD</option>
+        <option value="eur">€ EUR</option>
+      </select>
+    </header>
+
+    <div class="layout">
+      <!-- LEFT -->
+      <div class="card">
+        <div class="card-head">
+          <h2 class="card-title">Bills</h2>
+          <button class="add-pill" id="addBtn" title="Add a new bill" aria-label="Add a new bill" aria-haspopup="dialog">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+            Add
+          </button>
+        </div>
+        <div class="bills" id="bills"></div>
+        <div class="subtotal-row"><span>Subtotal</span><span class="v" id="subtotal">£0.00</span></div>
+
+        <div class="split-panel">
+          <div class="split-panel-title">Split Settings</div>
+          <div class="split-controls">
+            <div class="control-group left">
+              <label id="pplLabel">People</label>
+              <div class="stepper">
+                <button id="pplMinus" title="Fewer people" aria-label="Fewer people">&minus;</button>
+                <span class="val-wrap"><input class="val" id="pplVal" type="number" min="1" max="99" value="3" aria-labelledby="pplLabel" title="Number of people" /></span>
+                <button id="pplPlus" title="More people" aria-label="More people">+</button>
+              </div>
+            </div>
+            <div class="control-group right">
+              <label id="tipLabel">Tip</label>
+              <div class="stepper">
+                <button id="tipMinus" title="Lower tip" aria-label="Lower tip percentage">&minus;</button>
+                <span class="val-wrap"><input class="val" id="tipVal" type="number" min="0" max="100" value="5" aria-labelledby="tipLabel" title="Tip percentage" /><span class="suffix">%</span></span>
+                <button id="tipPlus" title="Higher tip" aria-label="Higher tip percentage">+</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="reset-btn"><button class="pill-btn" id="resetBtn" title="Clear all bills and settings" aria-label="Reset all bills and settings">Reset</button></div>
+      </div>
+
+      <!-- RIGHT -->
+      <div class="card results">
+        <h2 class="card-title" style="margin-bottom:var(--sp-3);">Result</h2>
+        <div class="hero">
+          <div class="result-row">
+            <span class="amount" id="perPerson" aria-live="polite">£0.00</span>
+            <label class="roundoff" title="Round each share up to the next whole unit">
+              <span class="switch">
+                <input type="checkbox" id="roundUp" role="switch" aria-label="Round off each share up to the next whole unit" />
+                <span class="track" aria-hidden="true"></span>
+                <span class="thumb" aria-hidden="true"></span>
+              </span>
+              Round-Off
+            </label>
+          </div>
+          <div class="sub" id="heroSub">each · 3 people</div>
+        </div>
+        <div class="breakdown">
+          <div class="b-row"><span class="k">Bills subtotal</span><span id="bdSubtotal">£0.00</span></div>
+          <div class="b-row"><span class="k">Tip</span><span id="bdTip">£0.00</span></div>
+          <div class="b-row"><span class="k">Total with tip</span><span id="bdTotal">£0.00</span></div>
+          <div class="b-row"><span class="k">Each pays</span><span id="bdEach">£0.00</span></div>
+        </div>
+        <div class="export-wrap">
+          <button class="pill-btn" id="exportBtn" title="Save or print the summary" aria-label="Open summary export options" aria-haspopup="dialog">Summary</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add-bill dialog -->
+  <div class="dialog-backdrop" id="addDialog">
+    <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="addTitle">
+      <h3 id="addTitle">Add a bill</h3>
+      <p>Enter the details for this bill.</p>
+      <div class="dialog-field"><label for="adDesc">Description</label><input type="text" id="adDesc" placeholder="e.g. Dinner" /></div>
+      <div class="dialog-field"><label for="adAmt">Amount</label><input type="number" id="adAmt" min="0" step="0.01" placeholder="0.00" /></div>
+      <div class="dialog-field"><label for="adDate">Date</label><input type="text" id="adDate" placeholder="DD/MM/YYYY" value="28/08/2026" /></div>
+      <div class="dialog-actions">
+        <button class="ghost" id="adCancel">Cancel</button>
+        <button class="primary" id="adSave">Add bill</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Export dialog -->
+  <div class="dialog-backdrop" id="exportDialog">
+    <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dlgTitle">
+      <h3 id="dlgTitle">Save summary as…</h3>
+      <p>Choose a format. Everything stays on your device.</p>
+      <div class="dialog-options">
+        <button id="expImg" title="Save summary as image" aria-label="Save summary as PNG image">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+          Image
+        </button>
+        <button id="expPdf" title="Save summary as PDF" aria-label="Save summary as PDF">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+          PDF
+        </button>
+        <button id="expTxt" title="Copy summary as text" aria-label="Copy summary as plain text">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7V4h16v3M9 20h6M12 4v16"/></svg>
+          Text
+        </button>
+      </div>
+      <button class="dialog-close" id="dlgClose">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Toast (undo actions + plain confirmations) -->
+  <div class="toast" id="toast" role="status" aria-live="polite">
+    <span id="toastMsg">Deleted</span>
+    <button class="undo-btn" id="undoBtn" title="Undo" aria-label="Undo the last action">Undo</button>
+    <span class="undo-count" id="undoCount">5s</span>
+  </div>
+
+  <script>
+    (function () {
+      var CURRENCIES = { none: "", inr: "₹", gbp: "£", usd: "$", eur: "€" };
+      var CUR = "₹"; // default INR
+      var bills = [
+        { desc: "Dinner", amount: 85.5, date: "28/08/2026" },
+        { desc: "Drinks", amount: 32.0, date: "28/08/2026" }
+      ];
+      var people = 3, tip = 5, roundUp = false;
+      var editIdx = -1; // index of the bill currently editing inline; -1 = none
+
+      var $ = function (id) { return document.getElementById(id); };
+      function money(n) { return CUR + (isFinite(n) ? n : 0).toFixed(2); }
+
+      var editIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>';
+      var delIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>';
+      var saveIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
+      var cancelIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>';
+
+      function renderBills() {
+        var host = $("bills");
+        host.innerHTML = "";
+        if (bills.length === 0) {
+          var hint = document.createElement("div");
+          hint.className = "empty-hint";
+          hint.textContent = "No bills yet — tap “Add” to enter one.";
+          host.appendChild(hint);
+          return;
+        }
+        bills.forEach(function (b, i) {
+          if (editIdx === i) { host.appendChild(inlineEditRow(b, i)); return; }
+          var line = document.createElement("div");
+          line.className = "bill-line";
+          line.innerHTML =
+            '<span class="bl-desc">' + (b.desc || "Bill " + (i + 1)) + '</span>' +
+            '<span class="bl-meta">· ' + b.date + '</span>' +
+            '<span class="bl-amt">' + money(b.amount) + '</span>';
+          var actions = document.createElement("span");
+          actions.className = "bl-actions";
+          var edit = document.createElement("button");
+          edit.className = "icon-btn"; edit.title = "Edit"; edit.innerHTML = editIcon;
+          edit.onclick = function () { editIdx = i; renderBills(); };
+          var del = document.createElement("button");
+          del.className = "icon-btn del"; del.title = "Delete"; del.innerHTML = delIcon;
+          del.onclick = function () {
+            var removed = bills[i], removedAt = i;
+            bills.splice(i, 1); if (editIdx === i) editIdx = -1;
+            renderBills(); recalc();
+            showUndo("Bill deleted", function () {
+              bills.splice(Math.min(removedAt, bills.length), 0, removed);
+              renderBills(); recalc();
+            });
+          };
+          actions.appendChild(edit); actions.appendChild(del);
+          line.appendChild(actions);
+          host.appendChild(line);
+        });
+      }
+
+      // Inline edit happens IN PLACE on the row
+      function inlineEditRow(b, i) {
+        var row = document.createElement("div");
+        row.className = "bill-edit";
+        row.innerHTML =
+          '<input type="text" id="ieDesc" placeholder="Description" value="' + (b.desc || "") + '" />' +
+          '<input type="number" id="ieAmt" min="0" step="0.01" placeholder="Amount" value="' + b.amount + '" />' +
+          '<input type="text" id="ieDate" placeholder="DD/MM/YYYY" value="' + b.date + '" />';
+        var save = document.createElement("button");
+        save.className = "mini save"; save.title = "Save"; save.innerHTML = saveIcon;
+        save.onclick = function () {
+          bills[i] = {
+            desc: $("ieDesc").value,
+            amount: Math.max(0, parseFloat($("ieAmt").value) || 0),
+            date: $("ieDate").value || "28/08/2026"
+          };
+          editIdx = -1; renderBills(); recalc();
+        };
+        var cancel = document.createElement("button");
+        cancel.className = "mini cancel"; cancel.title = "Cancel"; cancel.innerHTML = cancelIcon;
+        cancel.onclick = function () { editIdx = -1; renderBills(); };
+        row.appendChild(save); row.appendChild(cancel);
+        return row;
+      }
+
+      function recalc() {
+        var subtotal = bills.reduce(function (s, b) { return s + (b.amount || 0); }, 0);
+        var tipAmt = subtotal * (tip / 100);
+        var total = subtotal + tipAmt;
+        var each = people > 0 ? total / people : 0;
+        if (roundUp && each > 0) each = Math.ceil(each);
+        $("subtotal").textContent = money(subtotal);
+        $("bdSubtotal").textContent = money(subtotal);
+        $("bdTip").textContent = money(tipAmt);
+        $("bdTotal").textContent = money(total);
+        $("bdEach").textContent = money(each);
+        $("perPerson").textContent = money(each);
+        $("heroSub").textContent = "each · " + people + " " + (people === 1 ? "person" : "people");
+      }
+
+      // People + Tip: editable fields with steppers
+      function setPeople(n) { people = Math.max(1, Math.min(99, isFinite(n) ? Math.round(n) : 1)); $("pplVal").value = people; recalc(); }
+      function setTip(n) { tip = Math.max(0, Math.min(100, isFinite(n) ? n : 0)); $("tipVal").value = tip; recalc(); }
+
+      $("pplMinus").onclick = function () { setPeople(people - 1); };
+      $("pplPlus").onclick = function () { setPeople(people + 1); };
+      $("pplVal").oninput = function () { setPeople(parseFloat(this.value)); };
+      $("tipMinus").onclick = function () { setTip(tip - 1); };
+      $("tipPlus").onclick = function () { setTip(tip + 1); };
+      $("tipVal").oninput = function () { setTip(parseFloat(this.value)); };
+
+      $("roundUp").onchange = function () { roundUp = this.checked; recalc(); };
+
+      $("resetBtn").onclick = function () {
+        var snapshot = { bills: bills.slice(), people: people, tip: tip, roundUp: roundUp };
+        bills = []; people = 3; tip = 5; roundUp = false; editIdx = -1;
+        $("pplVal").value = 3; $("tipVal").value = 5; $("roundUp").checked = false;
+        renderBills(); recalc();
+        showUndo("Everything reset", function () {
+          bills = snapshot.bills; people = snapshot.people; tip = snapshot.tip; roundUp = snapshot.roundUp;
+          $("pplVal").value = people; $("tipVal").value = tip; $("roundUp").checked = roundUp;
+          renderBills(); recalc();
+        });
+      };
+
+      // Currency
+      $("currency").onchange = function () {
+        CUR = CURRENCIES[this.value] || "";
+        renderBills(); recalc();
+      };
+
+      // ---- Undo toast (5s countdown) ----
+      var undoTimer = null, undoTick = null, msgTimer = null;
+      function showUndo(msg, onUndo) {
+        clearTimeout(msgTimer);
+        var toast = $("toast");
+        $("toastMsg").textContent = msg;
+        $("undoBtn").style.display = ""; $("undoCount").style.display = "";
+        var remaining = 5;
+        $("undoCount").textContent = remaining + "s";
+        toast.classList.add("show");
+        clearTimeout(undoTimer); clearInterval(undoTick);
+        undoTick = setInterval(function () {
+          remaining -= 1;
+          $("undoCount").textContent = remaining + "s";
+          if (remaining <= 0) clearInterval(undoTick);
+        }, 1000);
+        undoTimer = setTimeout(function () { hideUndo(); }, 5000);
+        $("undoBtn").onclick = function () {
+          hideUndo();
+          if (typeof onUndo === "function") onUndo();
+        };
+      }
+      function hideUndo() {
+        clearTimeout(undoTimer); clearInterval(undoTick);
+        $("toast").classList.remove("show");
+      }
+      // Plain confirmation toast (no undo controls)
+      function showMessage(msg) {
+        clearTimeout(undoTimer); clearInterval(undoTick);
+        var toast = $("toast");
+        $("toastMsg").textContent = msg;
+        $("undoBtn").style.display = "none"; $("undoCount").style.display = "none";
+        toast.classList.add("show");
+        clearTimeout(msgTimer);
+        msgTimer = setTimeout(function () { toast.classList.remove("show"); }, 1800);
+      }
+
+      // Add-bill dialog
+      $("addBtn").onclick = function () {
+        $("adDesc").value = ""; $("adAmt").value = ""; $("adDate").value = "28/08/2026";
+        $("addDialog").classList.add("open"); setTimeout(function(){ $("adDesc").focus(); }, 50);
+      };
+      $("adCancel").onclick = function () { $("addDialog").classList.remove("open"); };
+      $("adSave").onclick = function () {
+        bills.push({ desc: $("adDesc").value, amount: Math.max(0, parseFloat($("adAmt").value) || 0), date: $("adDate").value || "28/08/2026" });
+        $("addDialog").classList.remove("open"); renderBills(); recalc();
+      };
+      $("addDialog").onclick = function (e) { if (e.target === this) this.classList.remove("open"); };
+
+      // Export dialog
+      $("exportBtn").onclick = function () { $("exportDialog").classList.add("open"); };
+      $("dlgClose").onclick = function () { $("exportDialog").classList.remove("open"); };
+      $("exportDialog").onclick = function (e) { if (e.target === this) this.classList.remove("open"); };
+      // Export options — show a confirmation toast (real save wired in the full build)
+      $("expImg").onclick = function () { $("exportDialog").classList.remove("open"); showMessage("Summary saved as image"); };
+      $("expPdf").onclick = function () { $("exportDialog").classList.remove("open"); showMessage("Opening print — choose Save as PDF"); };
+      $("expTxt").onclick = function () { $("exportDialog").classList.remove("open"); showMessage("Summary copied as text"); };
+
+      renderBills(); recalc();
+    })();
+  </script>
+</body>
+</html>

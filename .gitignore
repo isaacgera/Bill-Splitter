@@ -1,0 +1,18 @@
+# OS / filesystem cruft
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*~
+
+# Temporary / scratch files (e.g. probe/verify scripts used during development)
+_*.txt
+_*.py
+*.log
+*.tmp
